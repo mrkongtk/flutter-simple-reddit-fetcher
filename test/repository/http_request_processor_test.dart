@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:mockito/annotations.dart';
-import 'package:simple_reddit_fetcher/http_request_processor.dart';
+import 'package:simple_reddit_fetcher/repository/http_request_processor.dart';
 
 
 @GenerateMocks([http.Client])
