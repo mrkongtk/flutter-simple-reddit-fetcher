@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 class PostData {
@@ -73,5 +74,18 @@ class PostListData {
             .toList(growable: false)
         : List<PostData>.empty(growable: false);
     return PostListData(json['after'], json['before'], postListData);
+  }
+}
+
+class PostListResponse {
+  final String kind;
+  final PostListData data;
+
+  PostListResponse(this.kind, this.data);
+
+  factory PostListResponse.fromJson(String jsonString, String rootUrl) {
+    final json = jsonDecode(jsonString);
+    return PostListResponse(
+        json['kind'], PostListData.fromJson(json['data'], rootUrl));
   }
 }
