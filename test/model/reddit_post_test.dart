@@ -300,4 +300,236 @@ void main() {
               isUtc: true));
     });
   });
+
+  group('PostListData', () {
+    test('correct data', () {
+      const after = 'qwer';
+      const before = 'asdf';
+      const length = 2;
+      const rootUrl = 'https://www.reddit.com';
+      const id = '12345';
+      const author = '23456';
+      const title = '34567 title';
+      const thumbnailHeight = 12;
+      const thumbnailWeight = 34;
+      const thumbnail = 'https://123.com/456.jpg';
+      const permalink = '/567/890/';
+      const date = 1691741421.0;
+      const sampleDataString = '{"after": "$after",'
+          '"before": "$before",'
+          '"dist": $length,'
+          '"children": [{"data":{'
+          '"author_fullname":"$author",'
+          '"title":"$title",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink":"$permalink",'
+          '"created_utc":$date'
+          '}}, {"data":{'
+          '"author_fullname":"$author 2",'
+          '"title":"$title 2",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink":"$permalink",'
+          '"created_utc":$date'
+          '}}]}';
+      final sampleData = jsonDecode(sampleDataString);
+      final dataList = PostListData.fromJson(sampleData, rootUrl);
+      expect(dataList.after, after);
+      expect(dataList.before, before);
+      expect(dataList.dataList.length, length);
+      final data = dataList.dataList[0];
+      expect(data.id, id);
+      expect(data.title, title);
+      expect(data.authorFullName, author);
+      expect(data.thumbnail, Uri.parse(thumbnail));
+      expect(data.thumbnailHeight, thumbnailHeight);
+      expect(data.thumbnailWidth, thumbnailWeight);
+      expect(data.permalink, Uri.parse('$rootUrl$permalink'));
+      expect(
+          data.createdDateTime,
+          DateTime.fromMillisecondsSinceEpoch((date * 1000).round(),
+              isUtc: true));
+    });
+
+    test('missing before', () {
+      const after = 'qwer';
+      const length = 1;
+      const rootUrl = 'https://www.reddit.com';
+      const id = '12345';
+      const author = '23456';
+      const title = '34567 title';
+      const thumbnailHeight = 12;
+      const thumbnailWeight = 34;
+      const thumbnail = 'https://123.com/456.jpg';
+      const permalink = '/567/890/';
+      const date = 1691741421.0;
+      const sampleDataString = '{"after": "$after",'
+          '"dist": $length,'
+          '"children": [{"data":{'
+          '"author_fullname":"$author",'
+          '"title":"$title",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink":"$permalink",'
+          '"created_utc":$date'
+          '}}]}';
+      final sampleData = jsonDecode(sampleDataString);
+      final dataList = PostListData.fromJson(sampleData, rootUrl);
+      expect(dataList.after, after);
+      expect(dataList.before, null);
+      expect(dataList.dataList.length, length);
+      final data = dataList.dataList[0];
+      expect(data.id, id);
+      expect(data.title, title);
+      expect(data.authorFullName, author);
+      expect(data.thumbnail, Uri.parse(thumbnail));
+      expect(data.thumbnailHeight, thumbnailHeight);
+      expect(data.thumbnailWidth, thumbnailWeight);
+      expect(data.permalink, Uri.parse('$rootUrl$permalink'));
+      expect(
+          data.createdDateTime,
+          DateTime.fromMillisecondsSinceEpoch((date * 1000).round(),
+              isUtc: true));
+    });
+
+    test('missing after', () {
+      const before = 'asdf';
+      const length = 1;
+      const rootUrl = 'https://www.reddit.com';
+      const id = '12345';
+      const author = '23456';
+      const title = '34567 title';
+      const thumbnailHeight = 12;
+      const thumbnailWeight = 34;
+      const thumbnail = 'https://123.com/456.jpg';
+      const permalink = '/567/890/';
+      const date = 1691741421.0;
+      const sampleDataString = '{'
+          // '"after": "$after",'
+          '"before": "$before",'
+          '"dist": $length,'
+          '"children": [{"data":{'
+          '"author_fullname":"$author",'
+          '"title":"$title",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink":"$permalink",'
+          '"created_utc":$date'
+          '}}]}';
+      final sampleData = jsonDecode(sampleDataString);
+      expect(() => PostListData.fromJson(sampleData, rootUrl),
+          throwsA(isA<TypeError>()));
+    });
+
+    test('missing children', () {
+      const after = 'qwer';
+      const before = 'asdf';
+      const length = 0;
+      const rootUrl = 'https://www.reddit.com';
+      const sampleDataString = '{"after": "$after",'
+          '"before": "$before",'
+          '"dist": $length}';
+      final sampleData = jsonDecode(sampleDataString);
+      final dataList = PostListData.fromJson(sampleData, rootUrl);
+      expect(dataList.after, after);
+      expect(dataList.before, before);
+      expect(dataList.dataList.length, length);
+    });
+
+    test('with error Post Data', () {
+      const after = 'qwer';
+      const before = 'asdf';
+      const length = 0;
+      const rootUrl = 'https://www.reddit.com';
+      const id = '12345';
+      const author = '23456';
+      const title = '34567 title';
+      const thumbnailHeight = 12;
+      const thumbnailWeight = 34;
+      const thumbnail = 'https://123.com/456.jpg';
+      const permalink = '/567/890/';
+      const date = 1691741421.0;
+      const sampleDataString = '{"after": "$after",'
+          '"before": "$before",'
+          '"dist": $length,'
+          '"children": [{"data":{'
+          '"author_fullname":"$author",'
+          '"title":"$title",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink2":"$permalink",'
+          '"created_utc":$date'
+          '}}]}';
+      final sampleData = jsonDecode(sampleDataString);
+      final dataList = PostListData.fromJson(sampleData, rootUrl);
+      expect(dataList.after, after);
+      expect(dataList.before, before);
+      expect(dataList.dataList.length, length);
+    });
+
+    test('with 1 error Post Data', () {
+      const after = 'qwer';
+      const before = 'asdf';
+      const length = 1;
+      const rootUrl = 'https://www.reddit.com';
+      const id = '12345';
+      const author = '23456';
+      const title = '34567 title';
+      const thumbnailHeight = 12;
+      const thumbnailWeight = 34;
+      const thumbnail = 'https://123.com/456.jpg';
+      const permalink = '/567/890/';
+      const date = 1691741421.0;
+      const sampleDataString = '{"after": "$after",'
+          '"before": "$before",'
+          '"dist": $length,'
+          '"children": [{"data":{'
+          '"author_fullname":"$author",'
+          '"title":"$title",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink":"$permalink",'
+          '"created_utc":$date'
+          '}}, {"data":{'
+          '"author_fullname":"$author 2",'
+          '"title2":"$title 2",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink":"$permalink",'
+          '"created_utc":$date'
+          '}}]}';
+      final sampleData = jsonDecode(sampleDataString);
+      final dataList = PostListData.fromJson(sampleData, rootUrl);
+      expect(dataList.after, after);
+      expect(dataList.before, before);
+      expect(dataList.dataList.length, length);
+      final data = dataList.dataList[0];
+      expect(data.id, id);
+      expect(data.title, title);
+      expect(data.authorFullName, author);
+      expect(data.thumbnail, Uri.parse(thumbnail));
+      expect(data.thumbnailHeight, thumbnailHeight);
+      expect(data.thumbnailWidth, thumbnailWeight);
+      expect(data.permalink, Uri.parse('$rootUrl$permalink'));
+      expect(
+          data.createdDateTime,
+          DateTime.fromMillisecondsSinceEpoch((date * 1000).round(),
+              isUtc: true));
+    });
+  });
 }

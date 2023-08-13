@@ -1,3 +1,5 @@
+import 'dart:math';
+
 class PostData {
   final String id;
   final String authorFullName;
@@ -43,5 +45,33 @@ class PostData {
             : Uri.parse('$rootUrl$permalink'),
         DateTime.fromMillisecondsSinceEpoch((createdDateTime * 1000).round(),
             isUtc: true));
+  }
+}
+
+class PostListData {
+  final String after;
+  final String? before;
+  final List<PostData> dataList;
+
+  PostListData(this.after, this.before, this.dataList);
+
+  static PostData? _postDataFromJson(
+      Map<String, dynamic> json, String rootUrl) {
+    try {
+      return PostData.fromJson(json, rootUrl);
+    } on TypeError {
+      return null;
+    }
+  }
+
+  factory PostListData.fromJson(Map<String, dynamic> json, String rootUrl) {
+    final Iterable? children = json['children'];
+    final postListData = children != null
+        ? children
+            .map((c) => _postDataFromJson(c, rootUrl))
+            .whereType<PostData>()
+            .toList(growable: false)
+        : List<PostData>.empty(growable: false);
+    return PostListData(json['after'], json['before'], postListData);
   }
 }
