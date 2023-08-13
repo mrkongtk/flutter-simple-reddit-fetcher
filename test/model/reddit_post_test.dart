@@ -40,6 +40,41 @@ void main() {
               isUtc: true));
     });
 
+    test('not url format root url', () {
+      const rootUrl = '2iap';
+      const id = '12345';
+      const author = '23456';
+      const title = '34567 title';
+      const thumbnailHeight = 12;
+      const thumbnailWeight = 34;
+      const thumbnail = 'https://123.com/456.jpg';
+      const permalink = '/567/890/';
+      const date = 1691741421.0;
+      const sampleDataString = '{"data":{'
+          '"author_fullname":"$author",'
+          '"title":"$title",'
+          '"thumbnail_height":$thumbnailHeight,'
+          '"thumbnail_width":$thumbnailWeight,'
+          '"thumbnail":"$thumbnail",'
+          '"id":"$id",'
+          '"permalink":"$permalink",'
+          '"created_utc":$date'
+          '}}';
+      final sampleData = jsonDecode(sampleDataString);
+      final data = PostData.fromJson(sampleData, rootUrl);
+      expect(data.id, id);
+      expect(data.title, title);
+      expect(data.authorFullName, author);
+      expect(data.thumbnail, Uri.parse(thumbnail));
+      expect(data.thumbnailHeight, thumbnailHeight);
+      expect(data.thumbnailWidth, thumbnailWeight);
+      expect(data.permalink, Uri.parse('$rootUrl$permalink'));
+      expect(
+          data.createdDateTime,
+          DateTime.fromMillisecondsSinceEpoch((date * 1000).round(),
+              isUtc: true));
+    });
+
     test('missing id', () {
       const rootUrl = 'https://www.reddit.com';
       const id = '12345';
