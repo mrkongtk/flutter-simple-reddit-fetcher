@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../model/reddit_post.dart';
+import '../repository/reddit_api_provider.dart';
 import 'view_model.abs.dart';
 
 class HomeListPageState {
@@ -28,8 +30,14 @@ class HomeListPageState {
 class HomeListPageViewModel extends ViewModelAbs {
   final _stateSubject =
       BehaviorSubject<HomeListPageState>.seeded(HomeListPageState.empty());
+  late final RedditApiProvider _redditApiProvider;
+  final Logger _logger = Logger();
 
   Stream<HomeListPageState> get state => _stateSubject;
+
+  HomeListPageViewModel({RedditApiProvider? redditApiProvider}) {
+    _redditApiProvider = redditApiProvider ?? RedditApiProvider();
+  }
 
   @mustCallSuper
   @override
@@ -37,12 +45,23 @@ class HomeListPageViewModel extends ViewModelAbs {
     _stateSubject.close();
   }
 
-  void append(PostListData postListData) {
+  void retrieve({String? after}) {
+    _setLoading(true);
+    _redditApiProvider
+        .getPost(after: after)
+        .then((value) => {_append(value.data)},
+            onError: (Object e, StackTrace stackTrace) {
+      _logger.e(e.toString());
+      _logger.e(stackTrace);
+    }).whenComplete(() => _setLoading(false));
+  }
+
+  void _append(PostListData postListData) {
     final state = _stateSubject.value;
     _updateState(state.append(postListData));
   }
 
-  void setLoading(bool isLoading) {
+  void _setLoading(bool isLoading) {
     final state = _stateSubject.value;
     _updateState(state.setLoading(isLoading));
   }
