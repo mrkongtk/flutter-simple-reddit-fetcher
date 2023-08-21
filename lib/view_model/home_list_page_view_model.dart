@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
@@ -6,34 +8,34 @@ import '../model/reddit_post.dart';
 import '../repository/reddit_api_provider.dart';
 import 'view_model.abs.dart';
 
-class HomeListPageState {
+class HomeListPageViewModelState {
   final String? after;
   final List<PostData> dataList;
   final bool isLoading;
 
-  HomeListPageState._(this.after, this.dataList, this.isLoading);
+  HomeListPageViewModelState._(this.after, this.dataList, this.isLoading);
 
-  factory HomeListPageState.empty() {
-    return HomeListPageState._(null, [], false);
+  factory HomeListPageViewModelState.empty() {
+    return HomeListPageViewModelState._(null, [], false);
   }
 
-  HomeListPageState append(PostListData postListData) {
+  HomeListPageViewModelState append(PostListData postListData) {
     final newList = dataList + postListData.dataList;
-    return HomeListPageState._(postListData.after, newList, isLoading);
+    return HomeListPageViewModelState._(postListData.after, newList, isLoading);
   }
 
-  HomeListPageState setLoading(bool isLoading) {
-    return HomeListPageState._(after, dataList, isLoading);
+  HomeListPageViewModelState setLoading(bool isLoading) {
+    return HomeListPageViewModelState._(after, dataList, isLoading);
   }
 }
 
 class HomeListPageViewModel extends ViewModelAbs {
-  final _stateSubject =
-      BehaviorSubject<HomeListPageState>.seeded(HomeListPageState.empty());
+  final _stateSubject = BehaviorSubject<HomeListPageViewModelState>.seeded(
+      HomeListPageViewModelState.empty());
   late final RedditApiProvider _redditApiProvider;
   final Logger _logger = Logger();
 
-  Stream<HomeListPageState> get state => _stateSubject;
+  Stream<HomeListPageViewModelState> get state => _stateSubject;
 
   HomeListPageViewModel({RedditApiProvider? redditApiProvider}) {
     _redditApiProvider = redditApiProvider ?? RedditApiProvider();
@@ -47,26 +49,40 @@ class HomeListPageViewModel extends ViewModelAbs {
 
   void retrieve({String? after}) {
     _setLoading(true);
-    _redditApiProvider
-        .getPost(after: after)
-        .then((value) => {_append(value.data)},
-            onError: (Object e, StackTrace stackTrace) {
+    _redditApiProvider.getPost(after: after).catchError((e) {
       _logger.e(e.toString());
-      _logger.e(stackTrace);
-    }).whenComplete(() => _setLoading(false));
+    }).then((value) {
+      if (value.isRight) {
+        if (after == null) {
+          return _newList(value.right.data);
+        } else {
+          return _append(value.right.data);
+        }
+      }
+    }).whenComplete(() {
+      _setLoading(false);
+    });
   }
 
-  void _append(PostListData postListData) {
-    final state = _stateSubject.value;
-    _updateState(state.append(postListData));
+  HomeListPageViewModelState _newList(PostListData postListData) {
+    final result = HomeListPageViewModelState.empty().append(postListData);
+    _updateState(result);
+    return result;
   }
 
-  void _setLoading(bool isLoading) {
-    final state = _stateSubject.value;
-    _updateState(state.setLoading(isLoading));
+  HomeListPageViewModelState _append(PostListData postListData) {
+    final result = _stateSubject.value.append(postListData);
+    _updateState(result);
+    return result;
   }
 
-  void _updateState(HomeListPageState state) {
+  HomeListPageViewModelState _setLoading(bool isLoading) {
+    final result = _stateSubject.value.setLoading(isLoading);
+    _updateState(result);
+    return result;
+  }
+
+  void _updateState(HomeListPageViewModelState state) {
     _stateSubject.add(state);
   }
 }

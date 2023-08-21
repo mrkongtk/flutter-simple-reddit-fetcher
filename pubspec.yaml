@@ -39,6 +39,8 @@ dependencies:
   http: ^1.1.0
   http_status_code: ^0.0.2
   logger: ^2.0.1
+  intl: ^0.18.1
+  either_dart: ^1.0.0
 
 dev_dependencies:
   flutter_test:
