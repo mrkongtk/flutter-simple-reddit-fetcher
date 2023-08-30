@@ -6,7 +6,8 @@ import 'package:simple_reddit_fetcher/view_model/home_list_page_view_model.dart'
 import '../model/reddit_post.dart';
 
 class HomeListPage extends ViewAbs<HomeListPageViewModel> {
-  HomeListPage({Key? key}) : super.model(HomeListPageViewModel(), key: key);
+  HomeListPage({Key? key, HomeListPageViewModel? viewModel})
+      : super.model(viewModel ?? HomeListPageViewModel(), key: key);
 
   @override
   HomeListPageState createState() {
@@ -63,14 +64,12 @@ class HomeListPageState extends ViewState<HomeListPage, HomeListPageViewModel> {
           children: [
             Expanded(
                 flex: 1,
-                child: NotificationListener<ScrollEndNotification>(
-                    onNotification: (scrollEnd) {
-                      final metrics = scrollEnd.metrics;
-                      if (metrics.atEdge) {
-                        bool isTop = metrics.pixels == 0;
-                        if (isTop) {
-                        } else {
-                          if (!snapshotData.isLoading) {
+                child: NotificationListener<ScrollUpdateNotification>(
+                    onNotification: (scrollInfo) {
+                      if (!snapshotData.isLoading) {
+                        final metrics = scrollInfo.metrics;
+                        if ((scrollInfo.scrollDelta ?? -1) > 0) {
+                          if (metrics.pixels + 300 > metrics.maxScrollExtent) {
                             viewModel.retrieve(after: snapshotData.after);
                           }
                         }
@@ -82,6 +81,7 @@ class HomeListPageState extends ViewState<HomeListPage, HomeListPageViewModel> {
                         viewModel.retrieve();
                       },
                       child: ListView.separated(
+                          key: const Key('post list'),
                           padding: const EdgeInsets.all(4),
                           physics: const ClampingScrollPhysics(),
                           shrinkWrap: true,
@@ -100,6 +100,7 @@ class HomeListPageState extends ViewState<HomeListPage, HomeListPageViewModel> {
 
   Widget _buildItem(PostData data) {
     return Container(
+      key: Key('${data.id} item'),
       height: 100,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -112,6 +113,7 @@ class HomeListPageState extends ViewState<HomeListPage, HomeListPageViewModel> {
           SizedBox(
             width: double.infinity,
             child: RichText(
+              key: const Key('title'),
               textAlign: TextAlign.left,
               maxLines: 2,
               text: TextSpan(
@@ -127,6 +129,7 @@ class HomeListPageState extends ViewState<HomeListPage, HomeListPageViewModel> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               RichText(
+                key: const Key('author'),
                 text: TextSpan(
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context).colorScheme.secondary),
@@ -138,6 +141,7 @@ class HomeListPageState extends ViewState<HomeListPage, HomeListPageViewModel> {
                 ),
               ),
               RichText(
+                key: const Key('datetime'),
                 text: TextSpan(
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context).colorScheme.secondary,
